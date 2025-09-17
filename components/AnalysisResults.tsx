@@ -49,7 +49,7 @@ function Container({ children, className = "" }: { children: React.ReactNode; cl
   );
 }
 
-function MetricCard({ title, value, unit = "", good = true }: { title: string; value: number; unit?: string; good?: boolean }) {
+function MetricCard({ title, value, unit = "", good = true, isBest = false }: { title: string; value: number; unit?: string; good?: boolean; isBest?: boolean }) {
   // Format value based on unit and magnitude
   const formatValue = (val: number, unit: string) => {
     if (unit === "ms") {
@@ -61,36 +61,60 @@ function MetricCard({ title, value, unit = "", good = true }: { title: string; v
     }
   };
 
+  const getValueColor = () => {
+    if (isBest) return 'text-green-400';
+    if (good) return 'text-green-400';
+    return 'text-orange-400';
+  };
+
+  const getBorderColor = () => {
+    if (isBest) return 'border-green-500/30';
+    return 'border-white/10';
+  };
+
+  const getBackgroundColor = () => {
+    if (isBest) return 'bg-green-500/10';
+    return 'bg-white/5';
+  };
+
   return (
-    <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-      <div className="text-xs text-white/60 mb-1">{title}</div>
-      <div className={`text-lg font-semibold ${good ? 'text-green-400' : 'text-orange-400'}`}>
+    <div className={`rounded-lg border ${getBorderColor()} ${getBackgroundColor()} p-3 ${isBest ? 'ring-1 ring-green-500/20' : ''}`}>
+      <div className={`text-xs mb-1 flex items-center justify-between ${isBest ? 'text-green-300' : 'text-white/60'}`}>
+        <span>{title}</span>
+        {isBest && <span className="text-xs text-green-400">✓ Better</span>}
+      </div>
+      <div className={`text-lg font-semibold ${getValueColor()}`}>
         {formatValue(value, unit)}{unit}
       </div>
     </div>
   );
 }
 
-function ScoreCard({ title, score, icon: Icon }: { title: string; score: number; icon: any }) {
-  const getScoreColor = (score: number) => {
+function ScoreCard({ title, score, icon: Icon, isWinner = false }: { title: string; score: number; icon: any; isWinner?: boolean }) {
+  const getScoreColor = (score: number, isWinner: boolean) => {
+    if (isWinner) return 'text-green-400';
     if (score >= 90) return 'text-green-400';
     if (score >= 50) return 'text-orange-400';
     return 'text-red-400';
   };
 
-  const getScoreBackground = (score: number) => {
+  const getScoreBackground = (score: number, isWinner: boolean) => {
+    if (isWinner) return 'from-green-500/30 to-green-600/30 border-green-500/30';
     if (score >= 90) return 'from-green-500/20 to-green-600/20';
     if (score >= 50) return 'from-orange-500/20 to-orange-600/20';
     return 'from-red-500/20 to-red-600/20';
   };
 
   return (
-    <div className={`rounded-xl border border-white/10 bg-gradient-to-br ${getScoreBackground(score)} p-4`}>
+    <div className={`rounded-xl border ${isWinner ? 'border-green-500/30' : 'border-white/10'} bg-gradient-to-br ${getScoreBackground(score, isWinner)} p-4 ${isWinner ? 'ring-1 ring-green-500/20' : ''}`}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon size={16} className="text-white/60" />
-        <span className="text-sm text-white/60">{title}</span>
+        <Icon size={16} className={isWinner ? "text-green-400" : "text-white/60"} />
+        <span className={`text-sm ${isWinner ? "text-green-300" : "text-white/60"}`}>{title}</span>
+        {isWinner && (
+          <span className="ml-auto text-xs text-green-400">✓ Better</span>
+        )}
       </div>
-      <div className={`text-2xl font-bold ${getScoreColor(score)}`}>
+      <div className={`text-2xl font-bold ${getScoreColor(score, isWinner)}`}>
         {score}
       </div>
     </div>
@@ -181,10 +205,30 @@ export default function AnalysisResults({ results, onBack }: AnalysisResultsProp
                     <div className="space-y-4">
                       {/* Main Scores */}
                       <div className="grid grid-cols-2 gap-3">
-                        <ScoreCard title="Performance" score={yourSite.performance.score} icon={CheckCircle} />
-                        <ScoreCard title="SEO" score={yourSite.seo.score} icon={CheckCircle} />
-                        <ScoreCard title="Accessibility" score={yourSite.accessibility.score} icon={CheckCircle} />
-                        <ScoreCard title="Best Practices" score={yourSite.bestPractices.score} icon={CheckCircle} />
+                        <ScoreCard 
+                          title="Performance" 
+                          score={yourSite.performance.score} 
+                          icon={CheckCircle}
+                          isWinner={competitorSite ? yourSite.performance.score > competitorSite.performance.score : false}
+                        />
+                        <ScoreCard 
+                          title="SEO" 
+                          score={yourSite.seo.score} 
+                          icon={CheckCircle}
+                          isWinner={competitorSite ? yourSite.seo.score > competitorSite.seo.score : false}
+                        />
+                        <ScoreCard 
+                          title="Accessibility" 
+                          score={yourSite.accessibility.score} 
+                          icon={CheckCircle}
+                          isWinner={competitorSite ? yourSite.accessibility.score > competitorSite.accessibility.score : false}
+                        />
+                        <ScoreCard 
+                          title="Best Practices" 
+                          score={yourSite.bestPractices.score} 
+                          icon={CheckCircle}
+                          isWinner={competitorSite ? yourSite.bestPractices.score > competitorSite.bestPractices.score : false}
+                        />
                       </div>
 
                       {/* Core Web Vitals */}
@@ -196,23 +240,27 @@ export default function AnalysisResults({ results, onBack }: AnalysisResultsProp
                             value={yourSite.performance.metrics.firstContentfulPaint}
                             unit="ms"
                             good={yourSite.performance.metrics.firstContentfulPaint < 2000}
+                            isBest={competitorSite ? yourSite.performance.metrics.firstContentfulPaint < competitorSite.performance.metrics.firstContentfulPaint : false}
                           />
                           <MetricCard 
                             title="Largest Contentful Paint" 
                             value={yourSite.performance.metrics.largestContentfulPaint}
                             unit="ms"
                             good={yourSite.performance.metrics.largestContentfulPaint < 2500}
+                            isBest={competitorSite ? yourSite.performance.metrics.largestContentfulPaint < competitorSite.performance.metrics.largestContentfulPaint : false}
                           />
                           <MetricCard 
                             title="Total Blocking Time" 
                             value={yourSite.performance.metrics.totalBlockingTime}
                             unit="ms"
                             good={yourSite.performance.metrics.totalBlockingTime < 300}
+                            isBest={competitorSite ? yourSite.performance.metrics.totalBlockingTime < competitorSite.performance.metrics.totalBlockingTime : false}
                           />
                           <MetricCard 
                             title="Cumulative Layout Shift" 
                             value={yourSite.performance.metrics.cumulativeLayoutShift}
                             good={yourSite.performance.metrics.cumulativeLayoutShift < 0.1}
+                            isBest={competitorSite ? yourSite.performance.metrics.cumulativeLayoutShift < competitorSite.performance.metrics.cumulativeLayoutShift : false}
                           />
                         </div>
                       </div>
@@ -255,10 +303,30 @@ export default function AnalysisResults({ results, onBack }: AnalysisResultsProp
                     <div className="space-y-4">
                       {/* Main Scores */}
                       <div className="grid grid-cols-2 gap-3">
-                        <ScoreCard title="Performance" score={competitorSite.performance.score} icon={CheckCircle} />
-                        <ScoreCard title="SEO" score={competitorSite.seo.score} icon={CheckCircle} />
-                        <ScoreCard title="Accessibility" score={competitorSite.accessibility.score} icon={CheckCircle} />
-                        <ScoreCard title="Best Practices" score={competitorSite.bestPractices.score} icon={CheckCircle} />
+                        <ScoreCard 
+                          title="Performance" 
+                          score={competitorSite.performance.score} 
+                          icon={CheckCircle}
+                          isWinner={yourSite ? competitorSite.performance.score > yourSite.performance.score : false}
+                        />
+                        <ScoreCard 
+                          title="SEO" 
+                          score={competitorSite.seo.score} 
+                          icon={CheckCircle}
+                          isWinner={yourSite ? competitorSite.seo.score > yourSite.seo.score : false}
+                        />
+                        <ScoreCard 
+                          title="Accessibility" 
+                          score={competitorSite.accessibility.score} 
+                          icon={CheckCircle}
+                          isWinner={yourSite ? competitorSite.accessibility.score > yourSite.accessibility.score : false}
+                        />
+                        <ScoreCard 
+                          title="Best Practices" 
+                          score={competitorSite.bestPractices.score} 
+                          icon={CheckCircle}
+                          isWinner={yourSite ? competitorSite.bestPractices.score > yourSite.bestPractices.score : false}
+                        />
                       </div>
 
                       {/* Core Web Vitals */}
@@ -270,23 +338,27 @@ export default function AnalysisResults({ results, onBack }: AnalysisResultsProp
                             value={competitorSite.performance.metrics.firstContentfulPaint}
                             unit="ms"
                             good={competitorSite.performance.metrics.firstContentfulPaint < 2000}
+                            isBest={yourSite ? competitorSite.performance.metrics.firstContentfulPaint < yourSite.performance.metrics.firstContentfulPaint : false}
                           />
                           <MetricCard 
                             title="Largest Contentful Paint" 
                             value={competitorSite.performance.metrics.largestContentfulPaint}
                             unit="ms"
                             good={competitorSite.performance.metrics.largestContentfulPaint < 2500}
+                            isBest={yourSite ? competitorSite.performance.metrics.largestContentfulPaint < yourSite.performance.metrics.largestContentfulPaint : false}
                           />
                           <MetricCard 
                             title="Total Blocking Time" 
                             value={competitorSite.performance.metrics.totalBlockingTime}
                             unit="ms"
                             good={competitorSite.performance.metrics.totalBlockingTime < 300}
+                            isBest={yourSite ? competitorSite.performance.metrics.totalBlockingTime < yourSite.performance.metrics.totalBlockingTime : false}
                           />
                           <MetricCard 
                             title="Cumulative Layout Shift" 
                             value={competitorSite.performance.metrics.cumulativeLayoutShift}
                             good={competitorSite.performance.metrics.cumulativeLayoutShift < 0.1}
+                            isBest={yourSite ? competitorSite.performance.metrics.cumulativeLayoutShift < yourSite.performance.metrics.cumulativeLayoutShift : false}
                           />
                         </div>
                       </div>
