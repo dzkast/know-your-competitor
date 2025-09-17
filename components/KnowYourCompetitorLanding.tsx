@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import AnalysisResults from "./AnalysisResults";
 
 // Utility: simple container
 function Container({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -48,20 +49,75 @@ const mockStats = [
   { label: "Engagement", your: "62%", comp: "58%" },
 ];
 
+interface AnalysisResult {
+  yourSite: any;
+  competitorSite: any;
+  comparison: {
+    performanceWinner: 'yours' | 'competitor' | 'tie';
+    insights: string[];
+  };
+}
+
 export default function KnowYourCompetitorLanding() {
   const [yourUrl, setYourUrl] = useState("");
   const [compUrl, setCompUrl] = useState("");
   const [showDialog, setShowDialog] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState<AnalysisResult | null>(null);
+  const [showResults, setShowResults] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAnalyze = (e?: React.FormEvent) => {
+  const handleAnalyze = async (e?: React.FormEvent) => {
     e?.preventDefault();
+    
+    if (!yourUrl.trim() || !compUrl.trim()) {
+      setError("Please enter both URLs");
+      return;
+    }
+
+    setError(null);
+    setIsAnalyzing(true);
     setShowDialog(true);
-    // Simulate calculation, replace with real API later
-    setTimeout(() => {
+
+    try {
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          yourUrl: yourUrl.trim(),
+          competitorUrl: compUrl.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze websites');
+      }
+
+      const results = await response.json();
+      setAnalysisResults(results);
       setShowDialog(false);
-      // navigate or show results
-    }, 3000);
+      setShowResults(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      setShowDialog(false);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
+
+  const handleBackToAnalysis = () => {
+    setShowResults(false);
+    setAnalysisResults(null);
+    setYourUrl("");
+    setCompUrl("");
+  };
+
+  // Show results page if analysis is complete
+  if (showResults && analysisResults) {
+    return <AnalysisResults results={analysisResults} onBack={handleBackToAnalysis} />;
+  }
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-[#0c0b10] text-white">
@@ -147,15 +203,17 @@ export default function KnowYourCompetitorLanding() {
           </motion.form>
 
           {/* Loading dialog */}
-          <Dialog open={showDialog} onOpenChange={setShowDialog}>
+          <Dialog open={showDialog} onOpenChange={() => {}}>
             <DialogContent className="border-white/10 bg-[#0f0e14]/95 text-white backdrop-blur">
               <DialogHeader>
-                <DialogTitle className="text-white">Calculating results</DialogTitle>
+                <DialogTitle className="text-white">
+                  {isAnalyzing ? "Analyzing Performance..." : "Getting Ready..."}
+                </DialogTitle>
                 <DialogDescription className="text-white/60">
                   {yourUrl && compUrl ? (
                     <span>
-                      Analyzing <span className="text-white/80">{yourUrl}</span> vs {" "}
-                      <span className="text-white/80">{compUrl}</span>…
+                      Comparing <span className="text-white/80">{yourUrl}</span> vs {" "}
+                      <span className="text-white/80">{compUrl}</span>
                     </span>
                   ) : (
                     <span>Preparing analysis…</span>
@@ -163,9 +221,17 @@ export default function KnowYourCompetitorLanding() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="mt-4 flex items-center gap-3">
-                <Loader2 className="animate-spin" />
-                <div className="text-sm text-white/70">This may take a few moments.</div>
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="animate-spin text-fuchsia-400" />
+                  <div className="text-sm text-white/70">
+                    Running Google PageSpeed Insights analysis...
+                  </div>
+                </div>
+
+                <div className="text-xs text-white/50">
+                  This may take 30-60 seconds as we analyze both websites.
+                </div>
               </div>
 
               <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/10">
@@ -181,6 +247,17 @@ export default function KnowYourCompetitorLanding() {
               `}</style>
             </DialogContent>
           </Dialog>
+
+          {/* Error message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mx-auto mt-4 max-w-md rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-center"
+            >
+              <p className="text-sm text-red-400">{error}</p>
+            </motion.div>
+          )}
 
           {/* Social proof */}
           <motion.div
