@@ -151,14 +151,17 @@ async function analyzeWebsite(url: string, useMockData = false): Promise<PageSpe
       return generateMockData(url);
     }
 
-    // Google PageSpeed Insights API (free tier)
-    // Add API key support if available
+    // Google PageSpeed Insights API
     const apiKey = process.env.GOOGLE_PAGESPEED_API_KEY;
-    let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=ACCESSIBILITY&category=BEST_PRACTICES&category=SEO&strategy=MOBILE`;
     
-    if (apiKey) {
-      apiUrl += `&key=${apiKey}`;
+    if (!apiKey) {
+      console.log('No API key found, falling back to mock data for:', url);
+      return generateMockData(url);
     }
+    
+    let apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&category=PERFORMANCE&category=ACCESSIBILITY&category=BEST_PRACTICES&category=SEO&strategy=MOBILE&key=${apiKey}`;
+    
+    console.log('Using Google PageSpeed API with key for:', url);
     
     console.log(`Analyzing: ${url}`);
     
@@ -175,11 +178,14 @@ async function analyzeWebsite(url: string, useMockData = false): Promise<PageSpe
       
       // If quota exceeded, fall back to mock data
       if (response.status === 429 || (errorData.error && errorData.error.code === 429)) {
-        console.log('Quota exceeded, falling back to mock data');
+        console.log('Google API quota exceeded. Add GOOGLE_PAGESPEED_API_KEY to .env.local for higher limits.');
+        console.log('See GOOGLE_API_SETUP.md for instructions. Falling back to mock data.');
         return generateMockData(url);
       }
       
-      return null;
+      // For other errors, also fall back to mock data
+      console.log('API error occurred, falling back to mock data for:', url);
+      return generateMockData(url);
     }
 
     const data = await response.json();
@@ -275,8 +281,8 @@ export async function POST(request: NextRequest) {
 
     console.log('Starting analysis for:', { yourUrl, competitorUrl });
 
-    // Check if we should use mock data (for demo purposes or when API quota is exceeded)
-    const useMockData = process.env.USE_MOCK_DATA === 'true';
+    // Check if we should use mock data
+    const useMockData = process.env.USE_MOCK_DATA === 'true' || !process.env.GOOGLE_PAGESPEED_API_KEY;
 
     // Analyze both websites in parallel
     const [yourSiteData, competitorSiteData] = await Promise.all([

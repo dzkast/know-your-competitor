@@ -152,9 +152,13 @@ export default function AnalysisResults({ results, onBack }: AnalysisResultsProp
                 <h1 className="text-2xl font-bold text-white">Performance Analysis Results</h1>
                 <p className="text-sm text-white/60">
                   Powered by Google PageSpeed Insights
-                  {process.env.NEXT_PUBLIC_DEMO_MODE && (
+                  {process.env.NEXT_PUBLIC_DEMO_MODE ? (
                     <span className="ml-2 inline-flex items-center rounded-full bg-blue-500/20 px-2 py-0.5 text-xs text-blue-300">
-                      Demo Data
+                      Demo Data - <a href="/GOOGLE_API_SETUP.md" className="underline hover:text-blue-200" target="_blank">Get Real Data</a>
+                    </span>
+                  ) : (
+                    <span className="ml-2 inline-flex items-center rounded-full bg-green-500/20 px-2 py-0.5 text-xs text-green-300">
+                      ✓ Live Data
                     </span>
                   )}
                 </p>

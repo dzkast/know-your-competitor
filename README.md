@@ -30,7 +30,17 @@ yarn install
 pnpm install
 ```
 
-2. Run the development server:
+2. Set up Google PageSpeed Insights API (for real data):
+
+```bash
+# Copy environment template
+cp .env.example .env.local
+
+# Add your Google API key to .env.local (see GOOGLE_API_SETUP.md)
+# GOOGLE_PAGESPEED_API_KEY=your_api_key_here
+```
+
+3. Run the development server:
 
 ```bash
 npm run dev
@@ -40,7 +50,13 @@ yarn dev
 pnpm dev
 ```
 
-3. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## 🔑 **Real vs Demo Data**
+
+- **Demo Mode**: Uses intelligent mock data based on real performance patterns
+- **Live Mode**: Requires Google API key for actual Lighthouse performance data
+- **Setup Guide**: See [GOOGLE_API_SETUP.md](./GOOGLE_API_SETUP.md) for 5-minute setup
 
 ## Tech Stack
 
