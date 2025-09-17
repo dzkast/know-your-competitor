@@ -50,11 +50,22 @@ function Container({ children, className = "" }: { children: React.ReactNode; cl
 }
 
 function MetricCard({ title, value, unit = "", good = true }: { title: string; value: number; unit?: string; good?: boolean }) {
+  // Format value based on unit and magnitude
+  const formatValue = (val: number, unit: string) => {
+    if (unit === "ms") {
+      return Math.round(val);
+    } else if (unit === "" && val < 1) {
+      return Math.round(val * 100) / 100; // Keep 2 decimal places for CLS
+    } else {
+      return Math.round(val);
+    }
+  };
+
   return (
     <div className="rounded-lg border border-white/10 bg-white/5 p-3">
       <div className="text-xs text-white/60 mb-1">{title}</div>
       <div className={`text-lg font-semibold ${good ? 'text-green-400' : 'text-orange-400'}`}>
-        {value.toFixed(value < 10 ? 2 : 0)}{unit}
+        {formatValue(value, unit)}{unit}
       </div>
     </div>
   );
@@ -90,7 +101,7 @@ export default function AnalysisResults({ results, onBack }: AnalysisResultsProp
   const { yourSite, competitorSite, comparison } = results;
 
   const formatTime = (ms: number) => {
-    if (ms >= 1000) return `${(ms / 1000).toFixed(1)}s`;
+    if (ms >= 1000) return `${Math.round(ms / 1000 * 10) / 10}s`;
     return `${Math.round(ms)}ms`;
   };
 

@@ -47,23 +47,23 @@ function generateMockData(url: string): PageSpeedMetrics {
   return {
     url: url,
     performance: {
-      score: Math.max(10, Math.min(100, basePerformance + variation())),
+      score: Math.round(Math.max(10, Math.min(100, basePerformance + variation()))),
       metrics: {
-        firstContentfulPaint: 1200 + (Math.abs(hash) % 2000),
-        largestContentfulPaint: 2500 + (Math.abs(hash) % 3000),
-        speedIndex: 3000 + (Math.abs(hash) % 2000),
-        totalBlockingTime: 100 + (Math.abs(hash) % 400),
-        cumulativeLayoutShift: (Math.abs(hash) % 20) / 100,
+        firstContentfulPaint: Math.round(1200 + (Math.abs(hash) % 2000)),
+        largestContentfulPaint: Math.round(2500 + (Math.abs(hash) % 3000)),
+        speedIndex: Math.round(3000 + (Math.abs(hash) % 2000)),
+        totalBlockingTime: Math.round(100 + (Math.abs(hash) % 400)),
+        cumulativeLayoutShift: Math.round(((Math.abs(hash) % 20) / 100) * 100) / 100, // Keep 2 decimal places for CLS
       },
     },
     accessibility: {
-      score: Math.max(60, Math.min(100, 80 + variation())),
+      score: Math.round(Math.max(60, Math.min(100, 80 + variation()))),
     },
     bestPractices: {
-      score: Math.max(60, Math.min(100, 85 + variation())),
+      score: Math.round(Math.max(60, Math.min(100, 85 + variation()))),
     },
     seo: {
-      score: Math.max(50, Math.min(100, 75 + variation())),
+      score: Math.round(Math.max(50, Math.min(100, 75 + variation()))),
     },
   };
 }
@@ -163,9 +163,9 @@ function generateInsights(yourSite: PageSpeedMetrics | null, competitorSite: Pag
 
   // Performance comparison
   if (yourPerf > compPerf) {
-    insights.push(`🚀 Your site outperforms the competitor by ${yourPerf - compPerf} points in performance!`);
+    insights.push(`🚀 Your site outperforms the competitor by ${Math.round(yourPerf - compPerf)} points in performance!`);
   } else if (compPerf > yourPerf) {
-    insights.push(`⚠️ Competitor's site is ${compPerf - yourPerf} points ahead in performance. Focus on speed optimization.`);
+    insights.push(`⚠️ Competitor's site is ${Math.round(compPerf - yourPerf)} points ahead in performance. Focus on speed optimization.`);
   } else {
     insights.push("📊 Both sites have similar performance scores.");
   }
@@ -180,12 +180,12 @@ function generateInsights(yourSite: PageSpeedMetrics | null, competitorSite: Pag
 
   // SEO comparison
   if (yourSite.seo.score < competitorSite.seo.score) {
-    insights.push(`🔍 Improve SEO basics - competitor scores ${competitorSite.seo.score - yourSite.seo.score} points higher.`);
+    insights.push(`🔍 Improve SEO basics - competitor scores ${Math.round(competitorSite.seo.score - yourSite.seo.score)} points higher.`);
   }
 
   // Accessibility comparison
   if (yourSite.accessibility.score < competitorSite.accessibility.score) {
-    insights.push(`♿ Enhance accessibility - competitor is ${competitorSite.accessibility.score - yourSite.accessibility.score} points ahead.`);
+    insights.push(`♿ Enhance accessibility - competitor is ${Math.round(competitorSite.accessibility.score - yourSite.accessibility.score)} points ahead.`);
   }
 
   return insights;
