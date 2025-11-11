@@ -2,12 +2,13 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Gauge, Globe, DollarSign, Users, BellRing, ChartBarIncreasing, Sparkles, Lightbulb, Star, Loader2 } from "lucide-react";
+import { Search, Gauge, Globe, DollarSign, Users, BellRing, ChartBarIncreasing, Sparkles, Lightbulb, Star, Loader2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AnalysisResults from "./AnalysisResults";
+import Link from "next/link";
 
 // Utility: simple container
 function Container({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -16,19 +17,20 @@ function Container({ children, className = "" }: { children: React.ReactNode; cl
   );
 }
 
-// Reusable gradient blob
+// Reusable gradient blob (optimized with reduced blur)
 function Blob({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`pointer-events-none absolute rounded-full opacity-40 blur-3xl will-change-transform ${className}`}
-      aria-hidden
+      className={`pointer-events-none absolute rounded-full opacity-30 blur-2xl ${className}`}
+      aria-hidden="true"
+      style={{ transform: 'translateZ(0)' }}
     />
   );
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
 };
 
 const features = [
@@ -121,16 +123,30 @@ export default function KnowYourCompetitorLanding() {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-[#0c0b10] text-white">
-      {/* Global subtle noise & vignette */}
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(60%_60%_at_50%_10%,rgba(124,58,237,0.20),transparent_60%),radial-gradient(40%_40%_at_90%_0%,rgba(168,85,247,0.20),transparent_60%),radial-gradient(50%_50%_at_0%_100%,rgba(59,130,246,0.20),transparent_60%)]" />
+      {/* Global subtle noise & vignette - optimized */}
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(60%_60%_at_50%_10%,rgba(124,58,237,0.15),transparent_60%),radial-gradient(50%_50%_at_0%_100%,rgba(59,130,246,0.15),transparent_60%)]" style={{ willChange: 'auto' }} />
 
       {/* HERO */}
       <section className="relative isolate pt-24 md:pt-28 pb-20">
-        <Blob className="-top-20 left-1/3 h-64 w-64 bg-fuchsia-600/30" />
-        <Blob className="top-40 -left-10 h-72 w-72 bg-indigo-600/30" />
-        <Blob className="top-10 right-0 h-80 w-80 bg-purple-700/30" />
+        <Blob className="-top-20 left-1/3 h-64 w-64 bg-fuchsia-600/20" />
+        <Blob className="top-10 right-0 h-72 w-72 bg-purple-700/20" />
 
         <Container className="text-center">
+          {/* CRO Analyzer Link */}
+          <motion.div 
+            variants={fadeUp} 
+            initial="hidden" 
+            animate="show"
+            className="mb-4"
+          >
+            <Link href="/cro-analyzer">
+              <Button variant="secondary" className="border-white/15 bg-white/10 hover:bg-white/15 text-white">
+                <Zap size={16} className="mr-2" />
+                Try Pricing Analyzer
+              </Button>
+            </Link>
+          </motion.div>
+
           <motion.div variants={fadeUp} initial="hidden" animate="show" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-indigo-500"><Sparkles size={14} /></span>
             AI‑Powered Competitor Analysis
@@ -141,7 +157,7 @@ export default function KnowYourCompetitorLanding() {
             variants={fadeUp}
             initial="hidden"
             animate="show"
-            transition={{ delay: 0.06 }}
+            transition={{ delay: 0.03 }}
           >
             <span className="block text-white">Know Your</span>
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 via-purple-400 to-indigo-400">Competitor</span>
@@ -152,7 +168,7 @@ export default function KnowYourCompetitorLanding() {
             variants={fadeUp}
             initial="hidden"
             animate="show"
-            transition={{ delay: 0.12 }}
+            transition={{ delay: 0.06 }}
           >
             Instantly analyze any website's strategy, pricing, and performance. Get actionable insights to outsmart your competition in minutes, not months.
           </motion.p>
@@ -164,7 +180,7 @@ export default function KnowYourCompetitorLanding() {
             variants={fadeUp}
             initial="hidden"
             animate="show"
-            transition={{ delay: 0.18 }}
+            transition={{ delay: 0.09 }}
           >
             {/* Your URL */}
             <div className="relative flex-1 rounded-2xl border border-white/10 bg-[#0f0e14]/60 p-2">
@@ -264,7 +280,7 @@ export default function KnowYourCompetitorLanding() {
             variants={fadeUp}
             initial="hidden"
             animate="show"
-            transition={{ delay: 0.24 }}
+            transition={{ delay: 0.12 }}
             className="mx-auto mt-6 flex max-w-xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/60"
           >
             <div className="inline-flex items-center gap-1">
@@ -291,8 +307,8 @@ export default function KnowYourCompetitorLanding() {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {features.map((f, idx) => (
-              <motion.div key={f.title} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }} transition={{ delay: idx * 0.04 }}>
-                <Card className="h-full border-white/10 bg-white/5 backdrop-blur hover:border-white/20">
+              <motion.div key={f.title} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} transition={{ delay: idx * 0.02 }}>
+                <Card className="h-full border-white/10 bg-white/5 backdrop-blur hover:border-white/20 transition-colors">
                   <CardHeader className="pb-2">
                     <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-600/40 to-indigo-600/40">
                       <f.icon size={18} />
